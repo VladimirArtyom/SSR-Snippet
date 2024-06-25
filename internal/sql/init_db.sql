@@ -2,6 +2,7 @@
 
 DROP DATABASE IF EXISTS snippetbox;
 DROP USER IF EXISTS web@localhost;
+DROP USER IF EXISTS web@172.17.0.1;
 
 CREATE DATABASE snippetbox CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE snippetbox;
@@ -18,10 +19,15 @@ CREATE TABLE snippets(
 CREATE INDEX idx_snippets_created ON snippets(created);
 
 
--- Create new User
+-- Create new User for your local deployment
 CREATE USER 'web'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON snippetbox.* TO 'web'@'localhost';
 ALTER USER 'web'@'localhost' IDENTIFIED BY '123456';
+
+-- Create a new user for the docker client
+CREATE USER 'web'@'172.17.0.1';
+GRANT SELECT, INSERT, UPDATE, DELETE ON snippetbox.* TO 'web'@'172.17.0.1';
+ALTER USER 'web'@'172.17.0.1' IDENTIFIED BY '123456';
 
 -- DML snippetbox db table snippets
 INSERT INTO snippets(title, content, created, expires) VALUES (

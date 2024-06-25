@@ -1,10 +1,11 @@
 package main
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"text/template"
 )
 
 func (app *application) Home(w http.ResponseWriter, r *http.Request) {
@@ -14,6 +15,18 @@ func (app *application) Home(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  snippets, err := app.snippets.Latest()
+  if err != nil {
+    if errors.Is(err, sql.ErrNoRows) {
+      app.notFound(w)
+    } else {
+      app.serverError(w, err)
+    }
+  }
+    for _, snippet := range snippets {
+      fmt.Fprintf(w,"%v\n", snippet)
+    }
+  /*
   // Render page
   
   var templates []string = []string{
@@ -34,7 +47,7 @@ func (app *application) Home(w http.ResponseWriter, r *http.Request) {
     app.serverError(w, err)
     return
   }
-
+*/
 }
 
 func (app *application) SnipView(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +58,17 @@ func (app *application) SnipView(w http.ResponseWriter, r *http.Request) {
     return
   } 
 
-  fmt.Fprintf(w, "Display snippets from user %d", id)
+  snip, err :=  app.snippets.Get(id)
+  if err != nil {
+    if errors.Is(err, sql.ErrNoRows) {
+      app.notFound(w)
+    } else {
+      app.serverError(w, err)
+    }
+    return
+  }
+
+  fmt.Fprintf(w, "%+v", snip)
   
 }
 
@@ -58,6 +81,16 @@ func (app *application) SnipCreate(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  w.Write([]byte("Create a snippet"))
+  var title string = "0 snail"
+  var content string = "0 snail\n Climb Mount Fuji, \nBut slowly, slowly!\n\n- Kobayashi Issa"
+  var expires int = 7
+
+  id, err := app.snippets.Insert(title, content,  expires)
+  if err != nil {
+    app.serverError(w, err)
+    return
+  }
+
+  http.Redirect(w, r, fmt.Sprintf("/snip/view?id=%d", id), http.StatusSeeOther)
 
 }
