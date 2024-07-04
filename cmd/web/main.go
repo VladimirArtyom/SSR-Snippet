@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
-
 	"github.com/VladimirArtyom/SSR-snippet/internal/models"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -17,6 +17,7 @@ type application struct {
   errorLog *log.Logger
   infoLog *log.Logger
   snippets *models.SnippetModel
+  templateCache map[string]*template.Template
 }
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -39,8 +40,6 @@ func main() {
   var addr *string = flag.String("addr", "192.168.1.12:8080", "HTTP Network address")
   var dsn *string = flag.String("dsn", "web:123456@tcp(localhost:3306)/snippetbox?parseTime=true", "MYSQL data source name")
 
-
-
   // Parse the command line,
   flag.Parse()
 
@@ -54,11 +53,19 @@ func main() {
 
   defer db.Close()
 
+  templateCache, err := newTemplateCache()
+  if err != nil {
+    errorLog.Fatal(err)
+  } 
+  infoLog.Printf("Cache succesfully saved by %s", "Primitif")
+
   var app *application = &application{
     infoLog: infoLog,
     errorLog: errorLog,
     snippets: &models.SnippetModel{DB: db},
+    templateCache: templateCache,
   }
+
 
   var mux *http.ServeMux = app.routes()
 
