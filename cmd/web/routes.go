@@ -1,16 +1,27 @@
 package main
 
-import "net/http"
+import ("net/http"
+  "github.com/justinas/alice"
+  "github.com/julienschmidt/httprouter"
+)
 
-func (app *application) routes() *http.ServeMux {
+func (app *application) routes() http.Handler {
 
-  var mux *http.ServeMux = http.NewServeMux()
+  var router *httprouter.Router = httprouter.New()
+  
+  
+  router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+    app.notFound(w) 
+  })
 
   var fileServer http.Handler = http.FileServer(http.Dir("./ui/static/"))
-  mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-  mux.HandleFunc("/", app.Home)
-  mux.HandleFunc("/snip/view", app.SnipView)
-  mux.HandleFunc("/snip/create", app.SnipCreate)
+  router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
 
-  return mux
+  router.HandlerFunc(http.MethodGet, "/", app.Home)
+  router.HandlerFunc(http.MethodGet, "/snip/view/:id", app.SnipView)
+  router.HandlerFunc(http.MethodGet, "/snip/create", app.SnipCreate)
+  router.HandlerFunc(http.MethodPost, "/snip/create", app.SnipCreatePost)
+
+  var standardMiddleWare alice.Chain = alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+  return standardMiddleWare.Then(router)
 }

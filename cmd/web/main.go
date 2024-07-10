@@ -67,7 +67,7 @@ func main() {
   }
 
 
-  var mux *http.ServeMux = app.routes()
+  var mux http.Handler = app.routes()
 
   infoLog.Printf("Listening on %s", *addr)
   var server *http.Server = &http.Server{
