@@ -16,8 +16,8 @@ func (app *application) serverError(w http.ResponseWriter,err error ) {
   return
 }
 
-
-func (app *application) render(w http.ResponseWriter, pageName string, data *templateData, status int) {
+func (app *application) render(w http.ResponseWriter, pageName string,
+  data *templateData, status int) {
 
   ts, exist := app.templateCache[pageName]
   if !exist {

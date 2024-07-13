@@ -21,9 +21,10 @@ type templateData struct {
   CurrentYear int
   Snippet *models.Snippet
   Snippets []*models.Snippet
+  Form any
 }
 
-func newTemplateData(r *http.Request) (templ *templateData) {
+func (app *application) newTemplateData(r *http.Request) (templ *templateData) {
   templ = &templateData{
     CurrentYear: time.Now().Year(),
   }

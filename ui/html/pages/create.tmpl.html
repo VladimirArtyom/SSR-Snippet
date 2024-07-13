@@ -1,0 +1,42 @@
+{{define "title"}}
+Creer un nouvel extrait
+{{end}}
+
+
+{{define "main"}}
+ <form action="/snip/create" method="POST">
+
+  <div>
+    <label>Titre:</label>
+    {{with .Form.FieldError.title}}
+      <label class="error">{{.}}</label>
+    {{end}}
+    <input type="text" name="title" value="{{.Form.Title}}"/>
+  </div>
+
+  <div>
+    <label>Contenu:</label>
+    {{with .Form.FieldError.content}}
+      <label class="error">{{.}}</label>
+    {{end}}
+    <textarea name="content" value=>{{.Form.Content}}</textarea>
+  </div>
+
+  <div>
+    <label>Eliminar en:</label>
+    {{with .Form.FieldError.expire}}
+      <label class="error">{{.}}</label>
+    {{end}}
+    <input type="radio" name="expires" value="365" {{if (eq .Form.Expire 365)}}checked{{end}} > Un an
+    <input type="radio" name="expires" value="30" {{if (eq .Form.Expire 30)}} checked {{end}}> Un mes
+    <input type="radio" name="expires" value="7" {{if (eq .Form.Expire 7)}} checked {{end}}> Un semana
+    <input type="radio" name="expires" value="1" {{if (eq .Form.Expire 1)}} checked {{end}}> Un jour
+  </div>
+
+  <div>
+    <input type="submit" value="Enregistrer l'extrait"/>
+  </div>
+
+</form>
+{{end}}
+
