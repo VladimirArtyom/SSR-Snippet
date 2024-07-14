@@ -27,7 +27,7 @@ Creer un nouvel extrait
     {{with .Form.FieldError.expire}}
       <label class="error">{{.}}</label>
     {{end}}
-    <input type="radio" name="expires" value="365" {{if (eq .Form.Expire 365)}}checked{{end}} > Un an
+    <input type="radio" name="expires" value="360" {{if (eq .Form.Expire 365)}}checked{{end}} > Un an
     <input type="radio" name="expires" value="30" {{if (eq .Form.Expire 30)}} checked {{end}}> Un mes
     <input type="radio" name="expires" value="7" {{if (eq .Form.Expire 7)}} checked {{end}}> Un semana
     <input type="radio" name="expires" value="1" {{if (eq .Form.Expire 1)}} checked {{end}}> Un jour

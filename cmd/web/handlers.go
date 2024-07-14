@@ -6,16 +6,17 @@ import (
   "fmt"
   "net/http"
   "strconv"
-  "strings"
   "unicode/utf8"
   "github.com/VladimirArtyom/SSR-snippet/internal/models"
+  "github.com/VladimirArtyom/SSR-snippet/internal/validator"
   "github.com/julienschmidt/httprouter"
 )
+
 type snippetCreateFrom struct {
   Title string
   Content string
   Expire int
-  FieldError map[string]string
+  validator.Validator
 }
 
 func (app *application) Home(w http.ResponseWriter, r *http.Request) {
@@ -80,34 +81,23 @@ func (app *application) SnipCreatePost(w http.ResponseWriter, r *http.Request) {
     app.serverError(w, err)
     return
   }
-
-  var fieldError map[string]string = make(map[string]string)
-
-  if strings.TrimSpace(title) == "" {
-    fieldError["title"] = "This field cannot be blank"
-  } else if utf8.RuneCountInString(title) > 100 {
-    fieldError["title"] = "This field cannot be more than 100 characters long"
+  var form *snippetCreateFrom = &snippetCreateFrom{
+    Title: title,
+    Content: content,
+    Expire: expire,
   }
 
-  if strings.TrimSpace(content) == "" {
-    fieldError["content"] = "This field cannot be blank" 
-  }
-
-  if expire != 7 && expire != 30 && expire != 360 && expire != 1 {
-    fieldError["expire"] = "This field must equal to 1, 7, 30, ou 365"
-  }
+  form.CheckField(validator.IsNotBlank(form.Title), "title" , validator.BLANK_MESSAGE)
+  form.CheckField(validator.IsNotMaxChars(form.Title, 100), "title", fmt.Sprintf(validator.MAX_CHAR_MESSAGE,
+    utf8.RuneCountInString(form.Title)))
+  form.CheckField(validator.IsNotBlank(form.Content), "content", validator.BLANK_MESSAGE)
+  form.CheckField(validator.PermittedInt(form.Expire, 1, 7, 30, 360), "expire", validator.NOT_IN_OPTIONS)
 
 
-  if len(fieldError) > 0 {
-    var snipCreateForm *snippetCreateFrom = &snippetCreateFrom{
-      Title: title,
-      Content: content,
-      Expire: expire,
-      FieldError: fieldError,
-    }
-    // Render the page
+  if !form.IsValid() {
     var data *templateData = app.newTemplateData(r)
-    data.Form = snipCreateForm
+    data.Form = form
+
     app.render(w, "create.tmpl.html", data, http.StatusUnprocessableEntity)
     return
   }
