@@ -1,0 +1,69 @@
+openapi: 3.0.3
+info: 
+  title: SSR Snippet
+  version: 0.0.1
+  description: A HTTP Api used for SSR Website
+  contact:
+    name: vlad
+    url: https://google.com
+    email: vlad@none.xsa
+paths:
+  /:
+    get:
+      description: Get all snippets
+      responses:
+        200:
+          description: Get all snippets/
+          content:
+            text/html:
+              schema:
+                type: string
+                example: <h1>Hello, World!</h1>
+  /snip/view/{id}:
+    get:
+      description: Get specific snippet id
+      parameters:
+        - name: id
+          in: path
+          description: The id of the snippet
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Get specific snippet
+          content:
+            text/html:
+              schema:
+                type: string
+                example: <h1>Response Id 1</h1>
+  /snip/create:
+    get:
+      description: View for creating a new snippet
+      responses:
+        200:
+          description:  View for creating a new snippet
+          content:
+            text/html:
+              schema:
+                type: string
+                example: <h1>View snippet </h1>
+    post:
+      description: Create handler for a new snippet
+      responses:
+        200:
+          description:  Create handler for a new snippet and redirect to /snip/view/{id}
+          content:
+            text/html:
+              schema:
+                type: string
+                example: <h1>Create snippet succesfully </h1>
+        422:
+          description: Failed creating handler for a new snippet.
+          content:
+            text/html:
+              schema:
+                type: string
+                example: <h1> Creating snippet failed</h1>
+
+

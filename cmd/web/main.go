@@ -8,7 +8,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+
 	"github.com/VladimirArtyom/SSR-snippet/internal/models"
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -18,6 +20,7 @@ type application struct {
   infoLog *log.Logger
   snippets *models.SnippetModel
   templateCache map[string]*template.Template
+  formDecoder *form.Decoder
 }
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -59,13 +62,17 @@ func main() {
   } 
   infoLog.Printf("Cache succesfully saved by %s", "Primitif")
 
+  // init form decoder
+  var formDecoder *form.Decoder = form.NewDecoder()
+
+
   var app *application = &application{
     infoLog: infoLog,
     errorLog: errorLog,
     snippets: &models.SnippetModel{DB: db},
     templateCache: templateCache,
+    formDecoder: formDecoder,
   }
-
 
   var mux http.Handler = app.routes()
 

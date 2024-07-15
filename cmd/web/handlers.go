@@ -13,10 +13,10 @@ import (
 )
 
 type snippetCreateFrom struct {
-  Title string
-  Content string
-  Expire int
-  validator.Validator
+  Title string `form:"title"`
+  Content string `form:"content"`
+  Expire int `form:"expire"`
+  validator.Validator `form:"-"`// So we can have access into the validator package
 }
 
 func (app *application) Home(w http.ResponseWriter, r *http.Request) {
@@ -37,9 +37,7 @@ func (app *application) Home(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) SnipView(w http.ResponseWriter, r *http.Request) {
 
-
   var params httprouter.Params = httprouter.ParamsFromContext(r.Context())
-
 
   id, err := strconv.Atoi(params.ByName("id"))
   if id < 1 || err != nil {
@@ -67,24 +65,12 @@ func (app *application) SnipView(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) SnipCreatePost(w http.ResponseWriter, r *http.Request) {
 
+  var form *snippetCreateFrom = &snippetCreateFrom{}
+  err := app.decodePostForm(r, form)
 
-  err := r.ParseForm()
   if err != nil {
     app.clientError(w, http.StatusBadRequest)
-    return 
-  }
-
-  var title string = r.PostForm.Get("title")
-  var content string = r.PostForm.Get("content")
-  expire, err := strconv.Atoi(r.PostForm.Get("expires"))
-  if err != nil {
-    app.serverError(w, err)
     return
-  }
-  var form *snippetCreateFrom = &snippetCreateFrom{
-    Title: title,
-    Content: content,
-    Expire: expire,
   }
 
   form.CheckField(validator.IsNotBlank(form.Title), "title" , validator.BLANK_MESSAGE)
@@ -102,7 +88,9 @@ func (app *application) SnipCreatePost(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  id, err := app.snippets.Insert(title, content,  expire)
+  id, err := app.snippets.Insert(form.Title,
+    form.Content,
+    form.Expire)
   if err != nil {
     app.serverError(w, err)
     return
