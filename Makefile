@@ -15,13 +15,11 @@ run: build
 	./$(BUILD_TARGET)
 
 ## Docker 
-
 DOCKER_CONTAINER_NAME := mysql-container
 DDL_SQL_FILE := ./internal/sql/ddl.sql
 DML_SQL_FILE := ./internal/sql/dml.sql
 
 ## Mysql
-
 MYSQL_DATABASE := snippetbox
 MYSQL_CONTAINER := mysql-db
 MYSQL_USER_ROOT := root
@@ -35,6 +33,16 @@ init_mysql:
 .PHONY: init_sessions_table
 init_sessions_table:
 	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_ROOT) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/init_session_table.sql
+
+.PHONY: remove_db
+remove_db:
+	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_ROOT) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/remove_db.sql
+
+.PHONY: init_db
+init_db: init_mysql init_sessions_table
+
+.PHONY: clear_db
+	init_db: remove_db
 
 .PHONY: check_mysql
 check_mysql:

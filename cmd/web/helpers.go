@@ -30,7 +30,6 @@ func (app *application) decodePostForm(r *http.Request, destination any) error {
     return err
   }
 
-
   return nil
 }
 
@@ -38,7 +37,6 @@ func (app *application) decodePostForm(r *http.Request, destination any) error {
 func (app *application) serverError(w http.ResponseWriter,err error ) {
   var trace string = fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
   app.errorLog.Output(2, trace)
-
 
   http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
   return
