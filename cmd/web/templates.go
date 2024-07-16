@@ -22,11 +22,13 @@ type templateData struct {
   Snippet *models.Snippet
   Snippets []*models.Snippet
   Form any
+  Flash string
 }
 
 func (app *application) newTemplateData(r *http.Request) (templ *templateData) {
   templ = &templateData{
     CurrentYear: time.Now().Year(),
+    Flash: app.sessionManager.PopString(r.Context(), "flash"),
   }
   return templ
 }
@@ -60,6 +62,7 @@ func newTemplateCache() (map[string]*template.Template, error){
     }
 
     ts, err = ts.ParseFiles(page_relative)
+
     if err != nil {
       return nil, err
     }

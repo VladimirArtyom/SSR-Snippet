@@ -45,7 +45,6 @@ func (app *application) SnipView(w http.ResponseWriter, r *http.Request) {
     return
   } 
 
-
   snip, err :=  app.snippets.Get(id)
   if err != nil {
     if errors.Is(err, models.ErrNoRecord) {
@@ -55,7 +54,6 @@ func (app *application) SnipView(w http.ResponseWriter, r *http.Request) {
     }
     return
   }
-
   var templateData *templateData = app.newTemplateData(r)
   templateData.Snippet = snip
 
@@ -77,7 +75,7 @@ func (app *application) SnipCreatePost(w http.ResponseWriter, r *http.Request) {
   form.CheckField(validator.IsNotMaxChars(form.Title, 100), "title", fmt.Sprintf(validator.MAX_CHAR_MESSAGE,
     utf8.RuneCountInString(form.Title)))
   form.CheckField(validator.IsNotBlank(form.Content), "content", validator.BLANK_MESSAGE)
-  form.CheckField(validator.PermittedInt(form.Expire, 1, 7, 30, 360), "expire", validator.NOT_IN_OPTIONS)
+  form.CheckField(validator.PermittedInt(form.Expire, 1, 7, 30, 360), "expire", fmt.Sprintf(validator.NOT_IN_OPTIONS, form.Expire))
 
 
   if !form.IsValid() {
@@ -95,6 +93,8 @@ func (app *application) SnipCreatePost(w http.ResponseWriter, r *http.Request) {
     app.serverError(w, err)
     return
   }
+
+  app.sessionManager.Put(r.Context(), "flash", "Snippet cree avec succes!")
 
   http.Redirect(w, r, fmt.Sprintf("/snip/view/%d", id), http.StatusSeeOther)
 

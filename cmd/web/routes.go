@@ -9,18 +9,20 @@ func (app *application) routes() http.Handler {
 
   var router *httprouter.Router = httprouter.New()
   
-  
   router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
     app.notFound(w) 
   })
 
   var fileServer http.Handler = http.FileServer(http.Dir("./ui/static/"))
   router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
+  // Nous interessons uniqument a la session sur les routes ci-dessous.
+  // We only interested the session on the routes below.
+  sessionMiddleWare := alice.New(app.sessionManager.LoadAndSave)
 
-  router.HandlerFunc(http.MethodGet, "/", app.Home)
-  router.HandlerFunc(http.MethodGet, "/snip/view/:id", app.SnipView)
-  router.HandlerFunc(http.MethodGet, "/snip/create", app.SnipCreate)
-  router.HandlerFunc(http.MethodPost, "/snip/create", app.SnipCreatePost)
+  router.Handler(http.MethodGet, "/", sessionMiddleWare.ThenFunc(app.Home))
+  router.Handler(http.MethodGet, "/snip/view/:id", sessionMiddleWare.ThenFunc(app.SnipView))
+  router.Handler(http.MethodGet, "/snip/create", sessionMiddleWare.ThenFunc(app.SnipCreate))
+  router.Handler(http.MethodPost, "/snip/create", sessionMiddleWare.ThenFunc(app.SnipCreatePost))
 
   var standardMiddleWare alice.Chain = alice.New(app.recoverPanic, app.logRequest, secureHeaders)
   return standardMiddleWare.Then(router)

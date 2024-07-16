@@ -32,6 +32,10 @@ MYSQL_USER_PASSWORD := 123456
 init_mysql:
 	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_ROOT) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/init_db.sql
 
+.PHONY: init_sessions_table
+init_sessions_table:
+	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_ROOT) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/init_session_table.sql
+
 .PHONY: check_mysql
 check_mysql:
 	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_NAME) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/get_snippets.sql

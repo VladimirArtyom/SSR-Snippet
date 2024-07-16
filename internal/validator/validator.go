@@ -9,7 +9,7 @@ const (
 
 	BLANK_MESSAGE = "Cannot be Blank"
 	MAX_CHAR_MESSAGE = "Cannot be more than %d characters"
-	NOT_IN_OPTIONS = "Not in Options"
+	NOT_IN_OPTIONS = "Not in Options %d"
 
 )
 type Validator struct {

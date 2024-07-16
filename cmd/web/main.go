@@ -8,19 +8,26 @@ import (
 	"log"
 	"net/http"
 	"os"
-
+	"time"
 	"github.com/VladimirArtyom/SSR-snippet/internal/models"
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-
+// The application struct contains all the things that web app needs access to.
+// Mainly it is pour communicating with another modules.
+// and a global access pour the app.
+// This is not a good practice imo.
 type application struct {
   errorLog *log.Logger
   infoLog *log.Logger
   snippets *models.SnippetModel
   templateCache map[string]*template.Template
   formDecoder *form.Decoder
+  sessionManager *scs.SessionManager
+
 }
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -65,6 +72,10 @@ func main() {
   // init form decoder
   var formDecoder *form.Decoder = form.NewDecoder()
 
+  // init sessionManager
+  var sessionManager *scs.SessionManager = scs.New()
+  sessionManager.Store = mysqlstore.New(db)
+  sessionManager.Lifetime = 12 * time.Hour // Life time is 12 hours, start when the session is created
 
   var app *application = &application{
     infoLog: infoLog,
@@ -72,6 +83,7 @@ func main() {
     snippets: &models.SnippetModel{DB: db},
     templateCache: templateCache,
     formDecoder: formDecoder,
+    sessionManager: sessionManager,
   }
 
   var mux http.Handler = app.routes()
