@@ -34,6 +34,11 @@ init_mysql:
 init_sessions_table:
 	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_ROOT) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/init_session_table.sql
 
+
+.PHONY: init_users_table
+init_users_table:
+	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_ROOT) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/init_users_table.sql
+
 .PHONY: remove_db
 remove_db:
 	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_ROOT) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/remove_db.sql

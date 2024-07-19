@@ -23,6 +23,18 @@ func (app *application) routes() http.Handler {
   router.Handler(http.MethodGet, "/snip/view/:id", sessionMiddleWare.ThenFunc(app.SnipView))
   router.Handler(http.MethodGet, "/snip/create", sessionMiddleWare.ThenFunc(app.SnipCreate))
   router.Handler(http.MethodPost, "/snip/create", sessionMiddleWare.ThenFunc(app.SnipCreatePost))
+  
+  // Authentications
+  router.Handler(http.MethodGet, "/user/signup", sessionMiddleWare.ThenFunc(app.UserSignup))
+  router.Handler(http.MethodPost, "/user/signup", sessionMiddleWare.ThenFunc(app.UserSignupPost))
+
+  router.Handler(http.MethodGet, "/user/login", sessionMiddleWare.ThenFunc(app.UserLogin))
+  router.Handler(http.MethodPost, "/user/login", sessionMiddleWare.ThenFunc(app.UserLogin))
+
+  router.Handler(http.MethodGet, "/user/logout", sessionMiddleWare.ThenFunc(app.UserLogout))
+  router.Handler(http.MethodPost, "/user/logout", sessionMiddleWare.ThenFunc(app.UserLoginPost))
+
+
 
   var standardMiddleWare alice.Chain = alice.New(app.recoverPanic, app.logRequest, secureHeaders)
   return standardMiddleWare.Then(router)

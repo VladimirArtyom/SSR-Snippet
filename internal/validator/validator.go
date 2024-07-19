@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -10,8 +11,13 @@ const (
 	BLANK_MESSAGE = "Cannot be Blank"
 	MAX_CHAR_MESSAGE = "Cannot be more than %d characters"
 	NOT_IN_OPTIONS = "Not in Options %d"
+	INVALID_EMAIL = "Invalid Email"
+	MIN_CHAR_MESSAGE = "Must be at least %d characters; yours %d"
+	DUPLICATE_EMAIL = "Email address is already taken"
 
 )
+
+var EmailRX *regexp.Regexp = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 type Validator struct {
 	
 	FieldError map[string]string
@@ -37,6 +43,14 @@ func PermittedInt(value int, permittedValues ...int) bool {
 	return false
 }
 
+func Matches(value string, regex regexp.Regexp) bool {
+	return regex.MatchString(value)
+}
+
+func MinChars(value string, min int) bool {
+	return utf8.RuneCountInString(value) >= min
+}
+
 
 func (v *Validator) CheckField(ok bool, key string, message string) {
 	if !ok {
@@ -58,3 +72,4 @@ func (v *Validator) AddFieldError(key string, value string) {
 func (v *Validator) IsValid() bool {
 	return len(v.FieldError) == 0
 }
+

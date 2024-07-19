@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+
 	"github.com/VladimirArtyom/SSR-snippet/internal/models"
 	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
@@ -23,11 +25,12 @@ import (
 type application struct {
   errorLog *log.Logger
   infoLog *log.Logger
-  snippets *models.SnippetModel
   templateCache map[string]*template.Template
   formDecoder *form.Decoder
   sessionManager *scs.SessionManager
 
+  snippets *models.SnippetModel
+  users *models.UserModel
 }
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -80,10 +83,26 @@ func main() {
   var app *application = &application{
     infoLog: infoLog,
     errorLog: errorLog,
-    snippets: &models.SnippetModel{DB: db},
     templateCache: templateCache,
     formDecoder: formDecoder,
     sessionManager: sessionManager,
+
+    snippets: &models.SnippetModel{DB: db},
+    users: &models.UserModel{DB: db},
+  }
+
+  var tlsConfig *tls.Config = &tls.Config{
+    CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+    MinVersion: tls.VersionTLS12,
+    MaxVersion: tls.VersionTLS13,
+    CipherSuites: []uint16{
+      tls.TLS_AES_128_GCM_SHA256,
+      tls.TLS_CHACHA20_POLY1305_SHA256,
+      tls.TLS_AES_256_GCM_SHA384,
+      tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+      tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+      tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+    },
   }
 
   var mux http.Handler = app.routes()
@@ -93,8 +112,12 @@ func main() {
     Addr: *addr,
     Handler: mux,
     ErrorLog: errorLog,
+    TLSConfig: tlsConfig,
+    IdleTimeout: 2 * time.Minute,
+    ReadTimeout: 5 * time.Second,
+    WriteTimeout: 10 * time.Second,
   }
 
-  err = server.ListenAndServe()
+  err = server.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
   errorLog.Fatal(err)
 }

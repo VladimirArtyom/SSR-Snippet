@@ -19,6 +19,13 @@ type snippetCreateFrom struct {
   validator.Validator `form:"-"`// So we can have access into the validator package
 }
 
+type userSingupForm struct {
+  Name string `form:"name"`
+  Email string `form:"email"`
+  Password string `form:"password"` 
+  validator.Validator `form:"-"`
+}
+
 func (app *application) Home(w http.ResponseWriter, r *http.Request) {
 
   snippets, err := app.snippets.Latest()
@@ -108,3 +115,73 @@ func (app *application) SnipCreate(w http.ResponseWriter, r *http.Request) {
   }
   app.render(w, "create.tmpl.html",  data, http.StatusOK)
 }
+
+// Authentications
+
+func (app *application) UserSignup(w http.ResponseWriter, r* http.Request) {
+
+  var data *templateData = app.newTemplateData(r)
+  data.Form = &userSingupForm{}
+  app.render(w, "signup.tmpl.html", data, http.StatusOK)
+  return
+}
+
+func (app *application) UserSignupPost(w http.ResponseWriter, r* http.Request){
+
+  var form *userSingupForm = &userSingupForm{}
+
+  err := app.decodePostForm(r, &form)
+  if err != nil {
+    app.clientError(w, http.StatusBadRequest)
+    return
+  }
+
+  form.CheckField(validator.IsNotBlank(form.Name), "name", validator.BLANK_MESSAGE)
+  form.CheckField(validator.IsNotBlank(form.Email), "email", validator.BLANK_MESSAGE)
+  form.CheckField(validator.IsNotBlank(form.Password), "password", validator.BLANK_MESSAGE)
+  form.CheckField(validator.Matches(form.Email, *validator.EmailRX),"email", validator.INVALID_EMAIL)
+  form.CheckField(validator.MinChars(form.Password, 8), "password", fmt.Sprintf(validator.MIN_CHAR_MESSAGE, 8, utf8.RuneCountInString(form.Password)))
+
+  if !form.IsValid() {
+    var data *templateData = app.newTemplateData(r)
+    data.Form = form
+    app.render(w, "signup.tmpl.html", data, http.StatusUnprocessableEntity)
+    return
+  }
+
+  err = app.users.Insert(form.Name, form.Email, form.Password)
+  if err != nil {
+    if errors.Is(err, models.ErrDuplicateEmail) {
+      form.AddFieldError("email", validator.DUPLICATE_EMAIL)
+      var data *templateData = app.newTemplateData(r)
+      data.Form = form
+      app.render(w, "signup.tmpl.html", data, http.StatusUnprocessableEntity)
+      return
+    }
+
+    app.serverError(w, err)
+    return
+  }
+
+  app.sessionManager.Put(r.Context(), "flash", "Compte cree avec succes!")
+  http.Redirect( w, r, "/user/login",http.StatusSeeOther)
+
+}
+
+func (app *application) UserLogin(w http.ResponseWriter, r* http.Request) {
+
+}
+
+func (app *application) UserLoginPost(w http.ResponseWriter, r* http.Request) {
+
+}
+
+func (app *application) UserLogout(w http.ResponseWriter, r* http.Request) {
+
+}
+
+func (app *application) UserLogoutPost(w http.ResponseWriter, r* http.Request) {
+
+}
+
+
