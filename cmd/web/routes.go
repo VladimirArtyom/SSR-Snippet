@@ -29,10 +29,9 @@ func (app *application) routes() http.Handler {
   router.Handler(http.MethodPost, "/user/signup", sessionMiddleWare.ThenFunc(app.UserSignupPost))
 
   router.Handler(http.MethodGet, "/user/login", sessionMiddleWare.ThenFunc(app.UserLogin))
-  router.Handler(http.MethodPost, "/user/login", sessionMiddleWare.ThenFunc(app.UserLogin))
+  router.Handler(http.MethodPost, "/user/login", sessionMiddleWare.ThenFunc(app.UserLoginPost))
 
-  router.Handler(http.MethodGet, "/user/logout", sessionMiddleWare.ThenFunc(app.UserLogout))
-  router.Handler(http.MethodPost, "/user/logout", sessionMiddleWare.ThenFunc(app.UserLoginPost))
+  router.Handler(http.MethodPost, "/user/logout", sessionMiddleWare.ThenFunc(app.UserLogoutPost))
 
 
 

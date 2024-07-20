@@ -19,6 +19,12 @@ type snippetCreateFrom struct {
   validator.Validator `form:"-"`// So we can have access into the validator package
 }
 
+type userLoginForm struct {
+  Email string `form:"email"`
+  Password string `form:"password"`
+  validator.Validator `form:"-"`
+}
+
 type userSingupForm struct {
   Name string `form:"name"`
   Email string `form:"email"`
@@ -114,6 +120,7 @@ func (app *application) SnipCreate(w http.ResponseWriter, r *http.Request) {
     Expire: 365,
   }
   app.render(w, "create.tmpl.html",  data, http.StatusOK)
+  return
 }
 
 // Authentications
@@ -170,17 +177,75 @@ func (app *application) UserSignupPost(w http.ResponseWriter, r* http.Request){
 
 func (app *application) UserLogin(w http.ResponseWriter, r* http.Request) {
 
+  var data *templateData = app.newTemplateData(r)
+
+  data.Form = &userLoginForm{}
+  app.render(w, "signin.tmpl.html", data, http.StatusOK)
 }
 
 func (app *application) UserLoginPost(w http.ResponseWriter, r* http.Request) {
 
-}
+  var form *userLoginForm = &userLoginForm{}
 
-func (app *application) UserLogout(w http.ResponseWriter, r* http.Request) {
+  err := app.decodePostForm(r, &form)
+
+  if err != nil {
+    app.clientError(w, http.StatusBadRequest)
+    return
+  }
+
+  form.CheckField(validator.IsNotBlank(form.Email), "email", validator.BLANK_MESSAGE)
+  form.CheckField(validator.IsNotBlank(form.Password), "password", validator.BLANK_MESSAGE)
+  form.CheckField(validator.Matches(form.Email, *validator.EmailRX),"email", validator.INVALID_EMAIL)
+
+  if !form.IsValid() {
+    var templateData *templateData = app.newTemplateData(r)
+    templateData.Form = form
+    app.render(w, "signin.tmpl.html", templateData, http.StatusUnprocessableEntity)
+    return
+  }
+
+
+  id, err := app.users.Authenticate(form.Email, form.Password)
+  if err != nil {
+    if errors.Is(err, models.ErrInvalidCredentials) {
+      form.AddNonFieldError("Mot de passe ou courrier invalide")
+      var templateData* templateData = app.newTemplateData(r)
+      templateData.Form = form
+      app.render(w, "signin.tmpl.html", templateData, http.StatusUnauthorized)
+      return
+    }
+
+    app.serverError(w, err)
+    return
+  }
+
+  // Renew the token on current session to change the session ID
+  err = app.sessionManager.RenewToken(r.Context())
+  if err != nil {
+    app.serverError(w, err)
+    return
+  }
+  app.sessionManager.Put(r.Context(), "authenticateID", id)
+
+  http.Redirect(w, r, "/", http.StatusSeeOther)
 
 }
 
 func (app *application) UserLogoutPost(w http.ResponseWriter, r* http.Request) {
+
+  app.sessionManager.Remove(r.Context(), "authenticateID")
+
+  err := app.sessionManager.RenewToken(r.Context())
+  if err != nil {
+    app.serverError(w, err)
+    return
+  }
+
+  app.sessionManager.Put(r.Context(), "flash", "You have been logged out successfully")
+
+  http.Redirect(w, r, "/", http.StatusSeeOther)
+
 
 }
 

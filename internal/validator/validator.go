@@ -20,6 +20,7 @@ const (
 var EmailRX *regexp.Regexp = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 type Validator struct {
 	
+	NonFieldError []string
 	FieldError map[string]string
 }
 
@@ -69,7 +70,11 @@ func (v *Validator) AddFieldError(key string, value string) {
 	} 
 }
 
+func (v *Validator) AddNonFieldError(value string) {
+	v.NonFieldError = append(v.NonFieldError, value)
+}
+
 func (v *Validator) IsValid() bool {
-	return len(v.FieldError) == 0
+	return len(v.FieldError) == 0 && len(v.NonFieldError) == 0
 }
 
