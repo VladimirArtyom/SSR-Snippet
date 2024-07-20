@@ -7,8 +7,9 @@
 
 # Todo
 - [ ] Make comments
-- [ ] Certificates
-- [ ] Authentication
+- [x] Certificates
+- [x] Authentication
+- [ ] Authorization
 - [ ] Testing
 - [ ] Add lesson learned to repo Brain_SoftwareDevelopment
 
