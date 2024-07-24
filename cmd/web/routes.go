@@ -18,11 +18,10 @@ func (app *application) routes() http.Handler {
   // Nous interessons uniqument a la session sur les routes ci-dessous.
   // We only interested the session on the routes below.
   sessionMiddleWare := alice.New(app.sessionManager.LoadAndSave)
+  authMiddleware := sessionMiddleWare.Append(app.requireAuth)
 
   router.Handler(http.MethodGet, "/", sessionMiddleWare.ThenFunc(app.Home))
   router.Handler(http.MethodGet, "/snip/view/:id", sessionMiddleWare.ThenFunc(app.SnipView))
-  router.Handler(http.MethodGet, "/snip/create", sessionMiddleWare.ThenFunc(app.SnipCreate))
-  router.Handler(http.MethodPost, "/snip/create", sessionMiddleWare.ThenFunc(app.SnipCreatePost))
   
   // Authentications
   router.Handler(http.MethodGet, "/user/signup", sessionMiddleWare.ThenFunc(app.UserSignup))
@@ -31,7 +30,11 @@ func (app *application) routes() http.Handler {
   router.Handler(http.MethodGet, "/user/login", sessionMiddleWare.ThenFunc(app.UserLogin))
   router.Handler(http.MethodPost, "/user/login", sessionMiddleWare.ThenFunc(app.UserLoginPost))
 
-  router.Handler(http.MethodPost, "/user/logout", sessionMiddleWare.ThenFunc(app.UserLogoutPost))
+
+  // Authorization & Authentications
+  router.Handler(http.MethodGet, "/snip/create", authMiddleware.ThenFunc(app.SnipCreate))
+  router.Handler(http.MethodPost, "/snip/create", authMiddleware.ThenFunc(app.SnipCreatePost))
+  router.Handler(http.MethodPost, "/user/logout", authMiddleware.ThenFunc(app.UserLogoutPost))
 
 
 

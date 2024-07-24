@@ -7,11 +7,15 @@
   </div>
 
   <div>
-    <a href="/user/signup">Signup</a>
-    <a href="/user/login">Login</a>
+    {{if .IsAuthenticated}}
     <form action = "/user/logout" method="POST">
       <button>Logout</button>
     </form>
+    {{else}}
+      <a>"Babi"</a>
+      <a href="/user/signup">Signup</a>
+      <a href="/user/login">Login</a>
+    {{end}}
   </div>
 
 </nav>

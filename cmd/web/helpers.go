@@ -74,6 +74,10 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
   return
 }
 
+func (app *application) isAuthenticated(r *http.Request) bool{
+  return app.sessionManager.Exists(r.Context(), "authenticateID")
+}
+
 func (app *application) notFound(w http.ResponseWriter) {
   app.clientError(w, http.StatusNotFound)
   return
