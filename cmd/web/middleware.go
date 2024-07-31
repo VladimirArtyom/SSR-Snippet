@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/justinas/nosurf"
 )
 
 const (
@@ -26,6 +28,19 @@ func secureHeaders(next http.Handler) http.Handler {
 
     // Code below will be executed on the way up including deffered funcs
   });
+}
+
+// Using double cookie for handling CSRF
+func noSurf(next http.Handler) http.Handler {
+
+  var csrfHandler *nosurf.CSRFHandler = nosurf.New(next) 
+  csrfHandler.SetBaseCookie(http.Cookie{
+    HttpOnly: true,
+    Path: "/",
+    Secure: true,
+  })
+
+  return csrfHandler
 }
 
 

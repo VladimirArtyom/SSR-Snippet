@@ -11,6 +11,7 @@
   <div class="error">{{.}}</div>
   {{end}}
 
+  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}"/>
   <div>
     <label>Courrier:</label>
     {{with .Form.FieldError.email}}

@@ -7,6 +7,7 @@ Creer un nouvel extrait
  <form action="/snip/create" method="POST">
 
   <div>
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}"/>
     <label>Titre:</label>
     {{with .Form.FieldError.title}}
       <label class="error">{{.}}</label>

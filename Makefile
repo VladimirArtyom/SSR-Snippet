@@ -64,7 +64,7 @@ open_db:
 	docker exec -it $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_NAME) -p$(MYSQL_USER_PASSWORD) $(MYSQL_DATABASE)
 
 ## App
-APP_HOST := 192.168.1.12:8080
+APP_HOST := https://192.168.1.12:8080
 .PHONY: insert_test
 insert_test:
 	curl -iL -X POST $(APP_HOST)/snip/create
@@ -72,3 +72,14 @@ insert_test:
 .PHONY: get_test
 get_test:
 	curl -iL -X GET $(APP_HOST)/snip/view?id=1
+
+COOKIE_NAME=session
+COOKIE_VALUE=ctxuNg4w1mU-62YIwZu2xWuWrEJjQlbiyB6fuVAg8to
+COOKIE_FILE=./cookie.txt
+
+create_cookie_file:
+	echo "$(COOKIE_NAME)=$(COOKIE_VALUE)" > $(COOKIE_FILE)
+
+.PHONY: send_evil_request
+send_evil_request: create_cookie_file
+	curl -iL -b $(COOKIE_FILE) -X POST $(APP_HOST)/user/logout --insecure

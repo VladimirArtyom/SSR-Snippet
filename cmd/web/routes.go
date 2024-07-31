@@ -17,7 +17,7 @@ func (app *application) routes() http.Handler {
   router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
   // Nous interessons uniqument a la session sur les routes ci-dessous.
   // We only interested the session on the routes below.
-  sessionMiddleWare := alice.New(app.sessionManager.LoadAndSave)
+  sessionMiddleWare := alice.New(app.sessionManager.LoadAndSave, noSurf)
   authMiddleware := sessionMiddleWare.Append(app.requireAuth)
 
   router.Handler(http.MethodGet, "/", sessionMiddleWare.ThenFunc(app.Home))
@@ -35,7 +35,6 @@ func (app *application) routes() http.Handler {
   router.Handler(http.MethodGet, "/snip/create", authMiddleware.ThenFunc(app.SnipCreate))
   router.Handler(http.MethodPost, "/snip/create", authMiddleware.ThenFunc(app.SnipCreatePost))
   router.Handler(http.MethodPost, "/user/logout", authMiddleware.ThenFunc(app.UserLogoutPost))
-
 
 
   var standardMiddleWare alice.Chain = alice.New(app.recoverPanic, app.logRequest, secureHeaders)
