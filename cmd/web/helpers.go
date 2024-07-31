@@ -1,13 +1,13 @@
 package main
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
-	"net/http"
-	"runtime/debug"
+  "bytes"
+  "errors"
+  "fmt"
+  "net/http"
+  "runtime/debug"
 
-	"github.com/go-playground/form/v4"
+  "github.com/go-playground/form/v4"
 )
 
 
@@ -21,7 +21,7 @@ func (app *application) decodePostForm(r *http.Request, destination any) error {
 
   err = app.formDecoder.Decode(destination, r.PostForm)
   if err != nil {
-    
+
     var invalidEncode *form.InvalidDecoderError = &form.InvalidDecoderError{}
     if errors.As(err, &invalidEncode) {
       panic(err)
@@ -75,7 +75,11 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 }
 
 func (app *application) isAuthenticated(r *http.Request) bool{
-  return app.sessionManager.Exists(r.Context(), "authenticateID")
+  isAuth,ok := r.Context().Value(isAuthenticatedContextKey).(bool) 
+  if !ok {
+    return false
+  }
+  return isAuth
 }
 
 func (app *application) notFound(w http.ResponseWriter) {

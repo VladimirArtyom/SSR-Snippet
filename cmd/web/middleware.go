@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -29,6 +30,37 @@ func secureHeaders(next http.Handler) http.Handler {
     // Code below will be executed on the way up including deffered funcs
   });
 }
+
+func (app *application) authenticate(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+      
+    var sessionId int = app.sessionManager.GetInt(r.Context(), AUTHENTICATED_ID)
+  
+    // if no sessionID
+    if sessionId == 0 {
+      next.ServeHTTP(w, r)
+      return
+    }
+
+    exists, err := app.users.Exists(sessionId)
+
+    if err != nil {
+      app.serverError(w, err)
+      return
+    }
+
+    if exists {
+      // Making the the request hold the value that the user is 
+      // Exists within the database.
+      var newCtx context.Context = context.WithValue(r.Context(),
+        isAuthenticatedContextKey,
+        true)
+      r = r.WithContext(newCtx)
+    }
+
+    next.ServeHTTP(w,r)
+  })
+} 
 
 // Using double cookie for handling CSRF
 func noSurf(next http.Handler) http.Handler {

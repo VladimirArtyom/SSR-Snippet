@@ -226,7 +226,7 @@ func (app *application) UserLoginPost(w http.ResponseWriter, r* http.Request) {
     app.serverError(w, err)
     return
   }
-  app.sessionManager.Put(r.Context(), "authenticateID", id)
+  app.sessionManager.Put(r.Context(), AUTHENTICATED_ID, id)
 
   http.Redirect(w, r, "/", http.StatusSeeOther)
 
@@ -234,7 +234,7 @@ func (app *application) UserLoginPost(w http.ResponseWriter, r* http.Request) {
 
 func (app *application) UserLogoutPost(w http.ResponseWriter, r* http.Request) {
 
-  app.sessionManager.Remove(r.Context(), "authenticateID")
+  app.sessionManager.Remove(r.Context(), AUTHENTICATED_ID)
 
   err := app.sessionManager.RenewToken(r.Context())
   if err != nil {

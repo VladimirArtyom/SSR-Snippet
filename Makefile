@@ -44,7 +44,7 @@ remove_db:
 	docker exec -i $(MYSQL_CONTAINER) mysql -u$(MYSQL_USER_ROOT) -p$(MYSQL_USER_PASSWORD) < ./internal/sql/remove_db.sql
 
 .PHONY: init_db
-init_db: init_mysql init_sessions_table
+init_db: init_mysql init_sessions_table init_users_table
 
 .PHONY: clear_db
 	init_db: remove_db
